@@ -28,7 +28,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# خواندن توکن‌ها و کلیدها از متغیرهای امنیتی محیطی (بدون خطا در گیت‌هاب)
+# خواندن توکن‌ها و کلیدها از متغیرهای امنیتی محیطی
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
@@ -62,9 +62,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
+        # استفاده از مدل به صورت ایمن و مقاوم در برابر خطاهای پردازشی
         response = model.generate_content(user_text)
-        await update.message.reply_text(response.text)
+        if response and response.text:
+            await update.message.reply_text(response.text)
+        else:
+            await update.message.reply_text("⚠️ سیستم پاسخ خالی دریافت کرد.")
     except Exception as e:
+        print(f"Error processing message: {e}")
         await update.message.reply_text("❌ خطایی در پردازش هسته جارویس رخ داد.")
 
 if __name__ == '__main__':
