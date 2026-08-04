@@ -33,8 +33,8 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-# تنظیم مدل ساده و پایدار
-model = genai.GenerativeModel('gemini-pro')
+# استفاده از مدل کاملاً پایدار و استاندارد
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 SYSTEM_IDENTITY = (
     "You are J.A.R.V.I.S. NEXUS, an ultra-advanced, omniscient, and completely loyal Cybernetic AI. "
@@ -57,8 +57,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     user_text = update.message.text
     try:
-        # ترکیب هوش و هویت در قالب یک پرامپت امن
-        full_prompt = f"{SYSTEM_IDENTITY}\n\nUser message: {user_text}"
+        full_prompt = f"{SYSTEM_IDENTITY}\n\nUser: {user_text}"
         response = model.generate_content(full_prompt)
         
         if response and hasattr(response, 'text') and response.text:
@@ -67,7 +66,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("⚠️ فرمانده، پاسخ دریافتی از هسته خالی است.")
     except Exception as e:
         print(f"Error processing message: {e}")
-        await update.message.reply_text(f"❌ خطا در پردازش هسته جارویس: {str(e)[:50]}")
+        await update.message.reply_text("❌ خطا در پردازش هسته جارویس.")
 
 if __name__ == '__main__':
     print("🚀 در حال راه‌اندازی هسته J.A.R.V.I.S. ...")
