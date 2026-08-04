@@ -21,6 +21,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+else:
+    logging.warning("⚠️ کلید GEMINI_API_KEY در متغیرهای محیطی یافت نشد!")
 
 JARVIS_SYSTEM_PROMPT = """
 You are J.A.R.V.I.S. NEXUS, an ultra-advanced, omniscient, and completely loyal Cybernetic AI. 
