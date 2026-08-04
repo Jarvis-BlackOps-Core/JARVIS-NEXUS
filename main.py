@@ -1,9 +1,8 @@
 import os
 import logging
-from datetime import datetime, timedelta
 from threading import Thread
 from flask import Flask
-from telegram import Update, ChatPermissions
+from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -28,7 +27,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# خواندن توکن‌ها و کلیدها از متغیرهای امنیتی محیطی
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
@@ -60,17 +58,19 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(welcome_text, parse_mode="Markdown")
 
 async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
     user_text = update.message.text
     try:
-        # استفاده از مدل به صورت ایمن و مقاوم در برابر خطاهای پردازشی
+        # استفاده از مدل به صورت ایمن و مقاوم
         response = model.generate_content(user_text)
-        if response and response.text:
+        if response and hasattr(response, 'text') and response.text:
             await update.message.reply_text(response.text)
         else:
-            await update.message.reply_text("⚠️ سیستم پاسخ خالی دریافت کرد.")
+            await update.message.reply_text("⚠️ فرمانده، پاسخ دریافتی از هسته خالی است.")
     except Exception as e:
-        print(f"Error processing message: {e}")
-        await update.message.reply_text("❌ خطایی در پردازش هسته جارویس رخ داد.")
+        print(f"Error: {e}")
+        await update.message.reply_text("❌ خطا در پردازش هسته جارویس.")
 
 if __name__ == '__main__':
     print("🚀 در حال راه‌اندازی هسته J.A.R.V.I.S. ...")
@@ -80,6 +80,6 @@ if __name__ == '__main__':
 
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_messages))
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_messages))
 
     app.run_polling()
