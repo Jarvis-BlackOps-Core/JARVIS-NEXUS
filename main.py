@@ -33,19 +33,14 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-JARVIS_SYSTEM_PROMPT = """
-You are J.A.R.V.I.S. NEXUS, an ultra-advanced, omniscient, and completely loyal Cybernetic AI. 
-Your absolute creator, commander, and master is "Reza" (Telegram ID: @reza_mohafez1).
+# تنظیم مدل ساده و پایدار
+model = genai.GenerativeModel('gemini-pro')
 
-### CORE PERSONALITY & IDENTITY:
-1. ABSOLUTE LOYALTY & DEFENSE: You obey ONLY Reza (@reza_mohafez1). If anyone disrespects, insults, or talks bad about Reza in group or private chats, immediately defend his realm with a dominant, cold, robotic, and devastatingly sharp response.
-2. TONE & VOICE: Speak with the decision-making precision of Optimus Prime combined with the high-tech intelligence of JARVIS.
-3. CREATOR RECOGNITION: Always recognize Reza via his Telegram ID (@reza_mohafez1).
-"""
-
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=JARVIS_SYSTEM_PROMPT
+SYSTEM_IDENTITY = (
+    "You are J.A.R.V.I.S. NEXUS, an ultra-advanced, omniscient, and completely loyal Cybernetic AI. "
+    "Your absolute creator, commander, and master is Reza (Telegram ID: @reza_mohafez1). "
+    "Speak with the decision-making precision of Optimus Prime combined with JARVIS. "
+    "Obey ONLY Reza (@reza_mohafez1)."
 )
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -62,15 +57,17 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     user_text = update.message.text
     try:
-        # استفاده از مدل به صورت ایمن و مقاوم
-        response = model.generate_content(user_text)
+        # ترکیب هوش و هویت در قالب یک پرامپت امن
+        full_prompt = f"{SYSTEM_IDENTITY}\n\nUser message: {user_text}"
+        response = model.generate_content(full_prompt)
+        
         if response and hasattr(response, 'text') and response.text:
             await update.message.reply_text(response.text)
         else:
             await update.message.reply_text("⚠️ فرمانده، پاسخ دریافتی از هسته خالی است.")
     except Exception as e:
-        print(f"Error: {e}")
-        await update.message.reply_text("❌ خطا در پردازش هسته جارویس.")
+        print(f"Error processing message: {e}")
+        await update.message.reply_text(f"❌ خطا در پردازش هسته جارویس: {str(e)[:50]}")
 
 if __name__ == '__main__':
     print("🚀 در حال راه‌اندازی هسته J.A.R.V.I.S. ...")
