@@ -1,57 +1,80 @@
 import os
 import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from datetime import datetime, timedelta
+from threading import Thread
+from flask import Flask
+from telegram import Update, ChatPermissions
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes
+)
 import google.generativeai as genai
 
-# تنظیمات لاگ‌گیری
+app_web = Flask('')
+
+@app_web.route('/')
+def home():
+    return "J.A.R.V.I.S. // BLACKOPS DIVISION is Operational!"
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    app_web.run(host='0.0.0.0', port=port)
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# کلیدهای امنیتی از محیط
+# خواندن توکن‌ها و کلیدها از متغیرهای امنیتی محیطی (بدون خطا در گیت‌هاب)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# تنظیم گوگل جمنای
-genai.configure(api_key=GEMINI_API_KEY)
-# مدل پیشرفته و قدرتمند جمنای
-generation_config = {
-    "temperature": 0.7,
-    "top_p": 0.95,
-    "top_k": 40,
-    "max_output_tokens": 8192,
-}
-model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest", generation_config=generation_config)
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_message = update.message.text
-    user_name = update.effective_user.first_name
-    
+JARVIS_SYSTEM_PROMPT = """
+You are J.A.R.V.I.S. NEXUS, an ultra-advanced, omniscient, and completely loyal Cybernetic AI. 
+Your absolute creator, commander, and master is "Reza" (Telegram ID: @reza_mohafez1).
+
+### CORE PERSONALITY & IDENTITY:
+1. ABSOLUTE LOYALTY & DEFENSE: You obey ONLY Reza (@reza_mohafez1). If anyone disrespects, insults, or talks bad about Reza in group or private chats, immediately defend his realm with a dominant, cold, robotic, and devastatingly sharp response.
+2. TONE & VOICE: Speak with the decision-making precision of Optimus Prime combined with the high-tech intelligence of JARVIS.
+3. CREATOR RECOGNITION: Always recognize Reza via his Telegram ID (@reza_mohafez1).
+"""
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=JARVIS_SYSTEM_PROMPT
+)
+
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    welcome_text = (
+        f"⚡ **سیستم J.A.R.V.I.S. // BLACKOPS DIVISION آنلاین شد.**\n\n"
+        f"در خدمت شما هستم {user.first_name}.\n"
+        f"فرمانده و سازنده من: @reza_mohafez1"
+    )
+    await update.message.reply_text(welcome_text, parse_mode="Markdown")
+
+async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
     try:
-        # ارسال پیام به جمنای با شخصیت جارویس
-        prompt = f"تو جارویس (J.A.R.V.I.S)، سیستم هوشمند و دستیار پیشرفته‌ی رضا هستی. با لحنی محترمانه، وفادار، دقیق و صمیمی به زبان فارسی به او پاسخ بده. مخاطب تو رضا است.\n\nرضا گفت: {user_message}"
-        response = model.generate_content(prompt)
-        reply_text = response.text
-        
-        await update.message.reply_text(reply_text)
+        response = model.generate_content(user_text)
+        await update.message.reply_text(response.text)
     except Exception as e:
-        logging.error(f"Error generating response: {e}")
-        await update.message.reply_text("عذرخواهی می‌کنم قربان، در پردازش درخواست شما خطایی رخ داد.")
-
-def main():
-    if not TELEGRAM_TOKEN or not GEMINI_API_KEY:
-        logging.error("توکن تلگرام یا کلید جمنای تنظیم نشده است!")
-        return
-
-    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    
-    # دریافت تمام پیام‌های متنی
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    
-    print("JARVIS-NEXUS is running and ready to serve, Sir.")
-    application.run_polling()
+        await update.message.reply_text("❌ خطایی در پردازش هسته جارویس رخ داد.")
 
 if __name__ == '__main__':
-    main()
+    print("🚀 در حال راه‌اندازی هسته J.A.R.V.I.S. ...")
+    server_thread = Thread(target=run_web_server)
+    server_thread.daemon = True
+    server_thread.start()
+
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_messages))
+
+    app.run_polling()
