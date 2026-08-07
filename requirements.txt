@@ -1,1 +1,9 @@
-
+pyTelegramBotAPI
+google-genai
+Flask
+yt-dlp
+gTTS
+Pillow
+shazamio
+python-dotenv
+requests
