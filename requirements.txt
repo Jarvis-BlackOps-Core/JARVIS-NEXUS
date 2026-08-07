@@ -1,1 +1,8 @@
-
+pyTelegramBotAPI
+google-genai
+yt-dlp
+gTTS
+Pillow
+shazamio
+python-dotenv
+flask
