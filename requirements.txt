@@ -1,11 +1,1 @@
-pyTelegramBotAPI==4.26.0
-google-genai>=0.2.0
-yt-dlp>=2024.08.01
-gTTS==2.5.1
-Pillow==10.4.0
-Flask==3.0.3
-python-dotenv==1.0.1
-aiohttp==3.9.5
-requests==2.32.3
-ffmpeg-python==0.2.0
-mutagen>=1.47.0
+
