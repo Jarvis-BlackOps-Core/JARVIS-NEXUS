@@ -1,1 +1,11 @@
-
+pyTelegramBotAPI
+google-genai
+yt-dlp>=2024.08.06
+gTTS
+Pillow
+Flask
+python-dotenv
+aiohttp
+requests
+ffmpeg-python
+mutagen
